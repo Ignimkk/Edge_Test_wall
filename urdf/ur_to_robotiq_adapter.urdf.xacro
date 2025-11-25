@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <!--
+    Local copy of ur_to_robotiq adapter macro, simplified to avoid
+    creating the gripper base link twice.
+
+    Original macro signature is kept for compatibility, but the 'child'
+    link and associated joint are not created here. The Robotiq macro
+    itself will create robotiq_85_base_link.
+  -->
+  <xacro:macro name="ur_to_robotiq" params="prefix parent child rotation:=^|${0.0}">
+
+    <!-- Adapter joint from UR tool0 (parent) to intermediate adapter link -->
+    <joint name="${prefix}ur_to_robotiq_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${prefix}ur_to_robotiq_link"/>
+      <origin xyz="0 0 0" rpy="0 0 ${rotation}"/>
+    </joint>
+
+    <!-- Adapter link with visual/collision meshes -->
+    <link name="${prefix}ur_to_robotiq_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://robotiq_description/meshes/visual/2f_85/ur_to_robotiq_adapter.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://robotiq_description/meshes/collision/2f_85/ur_to_robotiq_adapter.stl"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.01" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.000044" ixy="0.0" ixz="0.0" iyy="0.000027" iyz="0.0" izz="0.000027" />
+      </inertial>
+    </link>
+
+    <!-- NOTE:
+      We intentionally do NOT create a second joint/link to 'child' here.
+      The Robotiq macro will create 'robotiq_85_base_link' itself. Creating
+      it here as well leads to duplicate link names and URDF parse errors.
+    -->
+
+  </xacro:macro>
+</robot>
+
+

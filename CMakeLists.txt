@@ -31,6 +31,8 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(moveit_msgs REQUIRED)
 find_package(action_msgs REQUIRED)
+find_package(robotiq_controllers REQUIRED)
+find_package(robotiq_description REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/MoveToPose.action"
@@ -100,7 +102,7 @@ install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(DIRECTORY config
+install(DIRECTORY config urdf srdf
   DESTINATION share/${PROJECT_NAME}
 )
 
