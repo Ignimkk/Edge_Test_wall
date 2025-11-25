@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # UR Picking Package
 
 UR 로봇을 활용한 picking 모듈입니다. ROS 2 Humble과 MoveIt2를 사용하며, **action 기반 제어 + RRT/RRT\* 플래너 선택 + Cartesian 경로 선택**을 지원합니다.
@@ -215,3 +216,6 @@ ros2 topic echo /current_state
 - Planning group 이름은 `"ur_manipulator"`로 설정되어 있습니다. 실제 로봇 설정에 맞게 수정이 필요할 수 있습니다.
 - `use_cartesian:=true` 인 경우, 시작 Pose와 목표 Pose 사이에 충돌/IK 실패 등이 있으면 Cartesian 경로 계획이 실패할 수 있습니다.
 - Action 기반 제어이므로, `goal_receive_node`와 `ur_picking_node`가 모두 실행되어야 정상 동작합니다.
+=======
+# Edge_Test_wall
+>>>>>>> ec26973d012258584956f4681fe7c82b374acb0e
