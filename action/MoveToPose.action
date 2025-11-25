@@ -1,0 +1,7 @@
+geometry_msgs/PoseStamped target_pose
+---
+moveit_msgs/MoveItErrorCodes error_code
+---
+string state
+
+
