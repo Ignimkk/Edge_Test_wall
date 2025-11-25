@@ -293,6 +293,3 @@ Ignition Gazebo용 ros2_control 구성에서는 해당 GPIO 인터페이스가 �
 - Planning group 이름은 기본적으로 `"ur_manipulator"` 입니다.
 - `use_cartesian:=true` 인 경우, 시작 Pose와 목표 Pose 사이에 충돌/IK 실패 등이 있으면 Cartesian 경로 계획이 실패할 수 있습니다.
 - Action 기반 제어이므로, `goal_receive_node`와 `ur_picking_node`가 모두 실행되어야 정상 동작합니다.
-
-
->>>>>>> 54893f4 (ur5e에 그리퍼 부착 완료, 기능: stop, move_goal, 그리핑)
