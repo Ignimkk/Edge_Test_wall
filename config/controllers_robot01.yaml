@@ -1,0 +1,16 @@
+controller_names:
+  - joint_trajectory_controller
+
+joint_trajectory_controller:
+  action_ns: follow_joint_trajectory
+  type: FollowJointTrajectory
+  default: true
+  joints:
+    - robot01_shoulder_pan_joint
+    - robot01_shoulder_lift_joint
+    - robot01_elbow_joint
+    - robot01_wrist_1_joint
+    - robot01_wrist_2_joint
+    - robot01_wrist_3_joint
+
+

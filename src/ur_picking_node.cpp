@@ -18,31 +18,50 @@ class UrPickingNode : public rclcpp::Node
 public:
   UrPickingNode()
     : Node("ur_picking_node")
-    , move_group_(std::shared_ptr<rclcpp::Node>(std::move(this)), "ur_manipulator")
     , stop_requested_(false)
     , action_executing_(false)
   {
     RCLCPP_INFO(this->get_logger(), "UR Picking Node initialized");
-
-    // MoveIt2 설정
-    move_group_.setPlanningTime(10.0);
-    move_group_.setNumPlanningAttempts(10);
-    move_group_.setMaxVelocityScalingFactor(0.5);
-    move_group_.setMaxAccelerationScalingFactor(0.5);
-
-    // Planning group 정보 출력
-    RCLCPP_INFO(this->get_logger(), "Planning frame: %s", move_group_.getPlanningFrame().c_str());
-    RCLCPP_INFO(this->get_logger(), "End effector link: %s", move_group_.getEndEffectorLink().c_str());
 
     // 파라미터 선언
     // planner_type: "RRT", "RRTstar", "RRTConnect" 중 하나 (기본: "RRTConnect")
     this->declare_parameter<std::string>("planner_type", "RRTConnect");
     // use_cartesian: true이면 카테시안 경로, false이면 OMPL 플래너 사용
     this->declare_parameter<bool>("use_cartesian", false);
+    // planning_group: MoveIt 플래닝 그룹 이름 (예: ur_manipulator, robot01_ur_manipulator)
+    this->declare_parameter<std::string>("planning_group", "ur_manipulator");
 
-    // /stop 토픽 구독
+    // MoveGroupInterface 노드는 별도의 rclcpp::Node 로 생성
+    std::string planning_group = "ur_manipulator";
+    try
+    {
+      planning_group = this->get_parameter("planning_group").as_string();
+    }
+    catch (const rclcpp::ParameterTypeException &)
+    {
+      RCLCPP_WARN(this->get_logger(),
+                  "Parameter 'planning_group' has invalid type. Using default 'ur_manipulator'.");
+      planning_group = "ur_manipulator";
+    }
+
+    auto move_group_node = rclcpp::Node::make_shared("ur_picking_move_group_interface");
+    move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(
+      move_group_node, planning_group);
+
+    // MoveIt2 설정
+    move_group_->setPlanningTime(10.0);
+    move_group_->setNumPlanningAttempts(10);
+    move_group_->setMaxVelocityScalingFactor(0.5);
+    move_group_->setMaxAccelerationScalingFactor(0.5);
+
+    // Planning group 정보 출력
+    RCLCPP_INFO(this->get_logger(), "Using planning group: %s", planning_group.c_str());
+    RCLCPP_INFO(this->get_logger(), "Planning frame: %s", move_group_->getPlanningFrame().c_str());
+    RCLCPP_INFO(this->get_logger(), "End effector link: %s", move_group_->getEndEffectorLink().c_str());
+
+    // stop 토픽 구독 (상대 이름으로 사용하여 네임스페이스 적용)
     stop_subscription_ = this->create_subscription<std_msgs::msg::Bool>(
-      "/stop", 10,
+      "stop", 10,
       std::bind(&UrPickingNode::stop_callback, this, std::placeholders::_1));
 
     // MoveToPose action server 생성
@@ -69,7 +88,7 @@ private:
       if (action_executing_ && current_goal_handle_)
       {
         RCLCPP_INFO(this->get_logger(), "Stopping current trajectory...");
-        move_group_.stop();
+        move_group_->stop();
         // 실제 abort 처리는 execute_goal() 내부에서 stop_requested_를 보고 수행
       }
     }
@@ -101,7 +120,7 @@ private:
     RCLCPP_INFO(this->get_logger(), "Goal cancellation requested");
     
     // MoveIt2 stop 호출
-    move_group_.stop();
+    move_group_->stop();
     action_executing_ = false;
     
     return rclcpp_action::CancelResponse::ACCEPT;
@@ -165,7 +184,7 @@ private:
       const double eef_step = 0.01;      // 엔드이펙터 이동 분해 수준 (m)
       const double jump_threshold = 0.0; // 점프 감지 비활성화
 
-      double fraction = move_group_.computeCartesianPath(
+      double fraction = move_group_->computeCartesianPath(
         waypoints, eef_step, jump_threshold, trajectory);
 
       if (fraction < 0.99)
@@ -215,11 +234,11 @@ private:
       }
 
       RCLCPP_INFO(this->get_logger(), "Using planner_id: %s", planner_id.c_str());
-      move_group_.setPlannerId(planner_id);
+      move_group_->setPlannerId(planner_id);
 
-      move_group_.setPoseTarget(goal->target_pose);
+      move_group_->setPoseTarget(goal->target_pose);
       moveit::planning_interface::MoveGroupInterface::Plan plan;
-      auto plan_result = move_group_.plan(plan);
+      auto plan_result = move_group_->plan(plan);
 
       if (plan_result != moveit::core::MoveItErrorCode::SUCCESS)
       {
@@ -240,7 +259,7 @@ private:
     feedback->state = "EXECUTING";
     goal_handle->publish_feedback(feedback);
 
-    moveit::core::MoveItErrorCode error_code = move_group_.execute(trajectory);
+    moveit::core::MoveItErrorCode error_code = move_group_->execute(trajectory);
 
     // Stop 체크 (실행 중 stop이 요청되었는지)
     if (stop_requested_)
@@ -274,7 +293,7 @@ private:
 
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr stop_subscription_;
   rclcpp_action::Server<MoveToPose>::SharedPtr action_server_;
-  moveit::planning_interface::MoveGroupInterface move_group_;
+  std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;
   
   bool stop_requested_;
   bool action_executing_;

@@ -31,6 +31,10 @@ def launch_setup(context, *args, **kwargs):
     safety_pos_margin = LaunchConfiguration("safety_pos_margin")
     safety_k_position = LaunchConfiguration("safety_k_position")
     prefix = LaunchConfiguration("prefix")
+    tf_prefix = LaunchConfiguration("tf_prefix")
+
+    # 로봇 ID / 네임스페이스 (다중 로봇용)
+    robot_id = LaunchConfiguration("robot_id")
 
     # MoveIt / 기타 인자
     use_sim_time = LaunchConfiguration("use_sim_time")
@@ -118,6 +122,9 @@ def launch_setup(context, *args, **kwargs):
             "prefix:=",
             prefix,
             " ",
+            "tf_prefix:=",
+            tf_prefix,
+            " ",
             "sim_ignition:=true",
             " ",
             "simulation_controllers:=",
@@ -134,6 +141,8 @@ def launch_setup(context, *args, **kwargs):
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
+        # namespace를 주지 않고 전역 노드로 두어 gz_ros2_control 플러그인이
+        # robot_state_publisher의 서비스(/robot_state_publisher/*)를 찾을 수 있게 함
         output="both",
         parameters=[{"use_sim_time": True}, robot_description],
     )
@@ -207,10 +216,19 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # 컨트롤러 스포너
+    # 주의: gz_ros2_control가 현재 controller_manager 노드를 전역 네임스페이스의
+    # 'controller_manager' 이름으로 생성하므로, 여기서는 기본 서비스 이름
+    # (/controller_manager/list_controllers 등)을 그대로 사용한다.
+    # 다중 라즈베리파이 환경에서는 각 보드가 별도 프로세스/머신이므로
+    # 이 전역 이름 충돌은 문제가 되지 않는다.
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        arguments=[
+            "joint_state_broadcaster",
+            "--controller-manager",
+            "/controller_manager",
+        ],
     )
 
     initial_joint_controller = LaunchConfiguration("initial_joint_controller")
@@ -219,13 +237,22 @@ def launch_setup(context, *args, **kwargs):
     initial_joint_controller_spawner_started = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[initial_joint_controller, "-c", "/controller_manager"],
+        arguments=[
+            initial_joint_controller,
+            "-c",
+            "/controller_manager",
+        ],
         condition=IfCondition(start_joint_controller),
     )
     initial_joint_controller_spawner_stopped = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[initial_joint_controller, "-c", "/controller_manager", "--stopped"],
+        arguments=[
+            initial_joint_controller,
+            "-c",
+            "/controller_manager",
+            "--stopped",
+        ],
         condition=UnlessCondition(start_joint_controller),
     )
 
@@ -233,7 +260,11 @@ def launch_setup(context, *args, **kwargs):
     robotiq_gripper_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["robotiq_gripper_controller", "-c", "/controller_manager"],
+        arguments=[
+            "robotiq_gripper_controller",
+            "-c",
+            "/controller_manager",
+        ],
     )
 
     # MoveIt 설정
@@ -267,7 +298,7 @@ def launch_setup(context, *args, **kwargs):
     }
 
     robot_description_kinematics = PathJoinSubstitution(
-        [FindPackageShare(moveit_config_package), "config", "kinematics.yaml"]
+        [FindPackageShare("ur_picking"), "config", "kinematics_robot01.yaml"]
     )
 
     robot_description_planning = {
@@ -289,11 +320,7 @@ def launch_setup(context, *args, **kwargs):
     ompl_planning_pipeline_config["move_group"].update(ompl_planning_yaml)
 
     # Trajectory Execution 설정
-    controllers_yaml = load_yaml("ur_moveit_config", "config/controllers.yaml")
-    change_controllers = context.perform_substitution(use_sim_time)
-    if change_controllers == "true":
-        controllers_yaml["scaled_joint_trajectory_controller"]["default"] = False
-        controllers_yaml["joint_trajectory_controller"]["default"] = True
+    controllers_yaml = load_yaml("ur_picking", "config/controllers_robot01.yaml")
 
     moveit_controllers = {
         "moveit_simple_controller_manager": controllers_yaml,
@@ -324,6 +351,8 @@ def launch_setup(context, *args, **kwargs):
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
+        # 전역 네임스페이스에서 실행하여 /robot_description 및
+        # /robot_description_semantic 토픽을 전역으로 퍼블리시하게 함
         output="screen",
         parameters=[
             robot_description,
@@ -439,9 +468,23 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
+            "robot_id",
+            default_value="robot1",
+            description="Robot ID / namespace for multi-robot setup.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
             "prefix",
             default_value='""',
             description="Prefix of the joint names.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "tf_prefix",
+            default_value="",
+            description="TF frame prefix (used to make frame and controller_manager names unique).",
         )
     )
 
@@ -465,7 +508,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "gazebo_gui",
-            default_value="true",
+            default_value="false",
             description="Start Gazebo with GUI?",
         )
     )

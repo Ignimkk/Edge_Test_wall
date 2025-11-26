@@ -8,6 +8,12 @@ import os
 
 def generate_launch_description():
     # Launch arguments
+    robot_id_arg = DeclareLaunchArgument(
+        'robot_id',
+        default_value='robot1',
+        description='Robot ID / namespace for external interfaces (topics)'
+    )
+
     use_sim_time_arg = DeclareLaunchArgument(
         'use_sim_time',
         default_value='true',
@@ -26,6 +32,12 @@ def generate_launch_description():
         description='Planner type: RRT, RRTstar, or RRTConnect'
     )
 
+    planning_group_arg = DeclareLaunchArgument(
+        'planning_group',
+        default_value='ur_manipulator',
+        description='MoveIt planning group name (e.g., ur_manipulator, robot01_ur_manipulator)'
+    )
+
     robot_ip_arg = DeclareLaunchArgument(
         'robot_ip',
         default_value='192.168.1.100',
@@ -38,10 +50,15 @@ def generate_launch_description():
         executable='ur_picking_node',
         name='ur_picking_node',
         output='screen',
+        remappings=[
+            # /<robot_id>/stop 으로 외부 인터페이스를 분리
+            ('stop', ['/', LaunchConfiguration('robot_id'), '/stop']),
+        ],
         parameters=[{
             'use_sim_time': LaunchConfiguration('use_sim_time'),
             'use_cartesian': LaunchConfiguration('use_cartesian'),
             'planner_type': LaunchConfiguration('planner_type'),
+            'planning_group': LaunchConfiguration('planning_group'),
         }]
     )
 
@@ -51,15 +68,22 @@ def generate_launch_description():
         executable='goal_receive_node',
         name='goal_receive_node',
         output='screen',
+        remappings=[
+            # /<robot_id>/move_goal, /<robot_id>/current_state 로 외부 인터페이스를 분리
+            ('move_goal', ['/', LaunchConfiguration('robot_id'), '/move_goal']),
+            ('current_state', ['/', LaunchConfiguration('robot_id'), '/current_state']),
+        ],
         parameters=[{
             'use_sim_time': LaunchConfiguration('use_sim_time'),
         }]
     )
 
     return LaunchDescription([
+        robot_id_arg,
         use_sim_time_arg,
         use_cartesian_arg,
         planner_type_arg,
+        planning_group_arg,
         robot_ip_arg,
         ur_picking_node,
         goal_receive_node,

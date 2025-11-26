@@ -36,12 +36,12 @@ speed_scaling_state_broadcaster:
 joint_trajectory_controller:
   ros__parameters:
     joints:
-      - shoulder_pan_joint
-      - shoulder_lift_joint
-      - elbow_joint
-      - wrist_1_joint
-      - wrist_2_joint
-      - wrist_3_joint
+      - robot01_shoulder_pan_joint
+      - robot01_shoulder_lift_joint
+      - robot01_elbow_joint
+      - robot01_wrist_1_joint
+      - robot01_wrist_2_joint
+      - robot01_wrist_3_joint
     command_interfaces:
       - position
     state_interfaces:
@@ -63,12 +63,12 @@ joint_trajectory_controller:
 scaled_joint_trajectory_controller:
   ros__parameters:
     joints:
-      - shoulder_pan_joint
-      - shoulder_lift_joint
-      - elbow_joint
-      - wrist_1_joint
-      - wrist_2_joint
-      - wrist_3_joint
+      - robot01_shoulder_pan_joint
+      - robot01_shoulder_lift_joint
+      - robot01_elbow_joint
+      - robot01_wrist_1_joint
+      - robot01_wrist_2_joint
+      - robot01_wrist_3_joint
     command_interfaces:
       - position
     state_interfaces:
@@ -91,28 +91,28 @@ scaled_joint_trajectory_controller:
 forward_velocity_controller:
   ros__parameters:
     joints:
-      - shoulder_pan_joint
-      - shoulder_lift_joint
-      - elbow_joint
-      - wrist_1_joint
-      - wrist_2_joint
-      - wrist_3_joint
+      - robot01_shoulder_pan_joint
+      - robot01_shoulder_lift_joint
+      - robot01_elbow_joint
+      - robot01_wrist_1_joint
+      - robot01_wrist_2_joint
+      - robot01_wrist_3_joint
     interface_name: velocity
 
 forward_position_controller:
   ros__parameters:
     joints:
-      - shoulder_pan_joint
-      - shoulder_lift_joint
-      - elbow_joint
-      - wrist_1_joint
-      - wrist_2_joint
-      - wrist_3_joint
+      - robot01_shoulder_pan_joint
+      - robot01_shoulder_lift_joint
+      - robot01_elbow_joint
+      - robot01_wrist_1_joint
+      - robot01_wrist_2_joint
+      - robot01_wrist_3_joint
 
 robotiq_gripper_controller:
   ros__parameters:
     default: true
-    joint: robotiq_85_left_knuckle_joint
+    joint: robot01_robotiq_85_left_knuckle_joint
     use_effort_interface: true
     use_speed_interface: true
 

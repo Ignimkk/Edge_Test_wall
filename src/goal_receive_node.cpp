@@ -18,14 +18,14 @@ public:
   {
     RCLCPP_INFO(this->get_logger(), "Goal Receive Node initialized");
 
-    // /move_goal 토픽 구독
+    // move_goal 토픽 구독 (상대 이름으로 사용하여 네임스페이스 적용)
     goal_subscription_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
-      "/move_goal", 10,
+      "move_goal", 10,
       std::bind(&GoalReceiveNode::goal_callback, this, std::placeholders::_1));
 
-    // /current_state 토픽 발행 (action feedback을 외부로 전달)
+    // current_state 토픽 발행 (action feedback을 외부로 전달, 네임스페이스 적용)
     current_state_publisher_ = this->create_publisher<std_msgs::msg::String>(
-      "/current_state", 10);
+      "current_state", 10);
 
     // MoveToPose action client 생성
     action_client_ = rclcpp_action::create_client<MoveToPose>(
