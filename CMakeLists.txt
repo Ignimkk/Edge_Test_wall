@@ -31,6 +31,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(moveit_msgs REQUIRED)
 find_package(action_msgs REQUIRED)
+find_package(control_msgs REQUIRED)
 find_package(robotiq_controllers REQUIRED)
 find_package(robotiq_description REQUIRED)
 
@@ -92,9 +93,26 @@ target_link_libraries(
   "${cpp_typesupport_target}"
 )
 
+add_executable(gripper_bridge_node
+  src/gripper_bridge_node.cpp
+)
+
+ament_target_dependencies(gripper_bridge_node
+  rclcpp
+  rclcpp_action
+  std_msgs
+  control_msgs
+)
+
+target_link_libraries(
+  gripper_bridge_node
+  "${cpp_typesupport_target}"
+)
+
 install(TARGETS
   ur_picking_node
   goal_receive_node
+  gripper_bridge_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

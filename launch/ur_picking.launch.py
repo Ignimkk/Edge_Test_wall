@@ -78,6 +78,21 @@ def generate_launch_description():
         }]
     )
 
+    # Gripper Bridge Node (Topic -> GripperCommand Action)
+    gripper_bridge_node = Node(
+        package='ur_picking',
+        executable='gripper_bridge_node',
+        name='gripper_bridge_node',
+        output='screen',
+        remappings=[
+            # /<robot_id>/gripper_open 토픽으로 외부 인터페이스를 분리
+            ('gripper_open', ['/', LaunchConfiguration('robot_id'), '/gripper_open']),
+        ],
+        parameters=[{
+            'use_sim_time': LaunchConfiguration('use_sim_time'),
+        }]
+    )
+
     return LaunchDescription([
         robot_id_arg,
         use_sim_time_arg,
@@ -87,5 +102,6 @@ def generate_launch_description():
         robot_ip_arg,
         ur_picking_node,
         goal_receive_node,
+        gripper_bridge_node,
     ])
 
