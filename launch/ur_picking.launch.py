@@ -58,6 +58,7 @@ def generate_launch_description():
             'use_sim_time': LaunchConfiguration('use_sim_time'),
             'use_cartesian': LaunchConfiguration('use_cartesian'),
             'planner_type': LaunchConfiguration('planner_type'),
+            'robot_id': LaunchConfiguration('robot_id'),
             'planning_group': LaunchConfiguration('planning_group'),
         }]
     )
@@ -75,6 +76,7 @@ def generate_launch_description():
         ],
         parameters=[{
             'use_sim_time': LaunchConfiguration('use_sim_time'),
+            'robot_id': LaunchConfiguration('robot_id'),
         }]
     )
 
@@ -83,6 +85,7 @@ def generate_launch_description():
         package='ur_picking',
         executable='gripper_bridge_node',
         name='gripper_bridge_node',
+        namespace=LaunchConfiguration('robot_id'),
         output='screen',
         remappings=[
             # /<robot_id>/gripper_open 토픽으로 외부 인터페이스를 분리

@@ -120,7 +120,7 @@ install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(DIRECTORY config urdf srdf
+install(DIRECTORY config urdf srdf rviz
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -369,9 +369,9 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    # RViz (MoveIt 뷰)
+    # RViz (로봇 모델만 표시)
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare(moveit_config_package), "rviz", "view_robot.rviz"]
+        [FindPackageShare("ur_picking"), "rviz", "robot_model_only.rviz"]
     )
     rviz_node = Node(
         package="rviz2",

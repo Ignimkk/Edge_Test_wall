@@ -18,6 +18,9 @@ public:
   {
     RCLCPP_INFO(this->get_logger(), "Goal Receive Node initialized");
 
+    // robot_id: 액션 네임스페이스 분리를 위한 로봇 ID (예: robot01)
+    this->declare_parameter<std::string>("robot_id", "");
+
     // move_goal 토픽 구독 (상대 이름으로 사용하여 네임스페이스 적용)
     goal_subscription_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
       "move_goal", 10,
@@ -28,8 +31,37 @@ public:
       "current_state", 10);
 
     // MoveToPose action client 생성
+    // 액션 이름을 robot_id에 따라 /<robot_id>/move_to_pose 형태로 설정
+    std::string robot_id;
+    try
+    {
+      robot_id = this->get_parameter("robot_id").as_string();
+    }
+    catch (const rclcpp::ParameterTypeException &)
+    {
+      RCLCPP_WARN(this->get_logger(),
+                  "Parameter 'robot_id' has invalid type. Using empty robot_id.");
+      robot_id.clear();
+    }
+
+    std::string action_name = "move_to_pose";
+    if (!robot_id.empty())
+    {
+      if (robot_id.front() != '/')
+      {
+        action_name = "/" + robot_id + "/move_to_pose";
+      }
+      else
+      {
+        action_name = robot_id + "/move_to_pose";
+      }
+    }
+
+    RCLCPP_INFO(this->get_logger(), "Creating MoveToPose action client for '%s'",
+                action_name.c_str());
+
     action_client_ = rclcpp_action::create_client<MoveToPose>(
-      this, "move_to_pose");
+      this, action_name);
 
     RCLCPP_INFO(this->get_logger(), "Waiting for action server...");
     action_client_->wait_for_action_server();

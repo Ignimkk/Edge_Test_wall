@@ -30,6 +30,8 @@ public:
     this->declare_parameter<bool>("use_cartesian", false);
     // planning_group: MoveIt 플래닝 그룹 이름 (예: ur_manipulator, robot01_ur_manipulator)
     this->declare_parameter<std::string>("planning_group", "ur_manipulator");
+    // robot_id: 액션 네임스페이스 분리를 위한 로봇 ID (예: robot01)
+    this->declare_parameter<std::string>("robot_id", "");
 
     // MoveGroupInterface 노드는 별도의 rclcpp::Node 로 생성
     std::string planning_group = "ur_manipulator";
@@ -65,9 +67,38 @@ public:
       std::bind(&UrPickingNode::stop_callback, this, std::placeholders::_1));
 
     // MoveToPose action server 생성
+    // 액션 이름을 robot_id에 따라 /<robot_id>/move_to_pose 형태로 설정
+    std::string robot_id;
+    try
+    {
+      robot_id = this->get_parameter("robot_id").as_string();
+    }
+    catch (const rclcpp::ParameterTypeException &)
+    {
+      RCLCPP_WARN(this->get_logger(),
+                  "Parameter 'robot_id' has invalid type. Using empty robot_id.");
+      robot_id.clear();
+    }
+
+    std::string action_name = "move_to_pose";
+    if (!robot_id.empty())
+    {
+      if (robot_id.front() != '/')
+      {
+        action_name = "/" + robot_id + "/move_to_pose";
+      }
+      else
+      {
+        action_name = robot_id + "/move_to_pose";
+      }
+    }
+
+    RCLCPP_INFO(this->get_logger(), "Creating MoveToPose action server on '%s'",
+                action_name.c_str());
+
     action_server_ = rclcpp_action::create_server<MoveToPose>(
       this,
-      "move_to_pose",
+      action_name,
       std::bind(&UrPickingNode::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
       std::bind(&UrPickingNode::handle_cancel, this, std::placeholders::_1),
       std::bind(&UrPickingNode::handle_accepted, this, std::placeholders::_1));
