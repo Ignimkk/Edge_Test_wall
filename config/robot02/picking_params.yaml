@@ -1,0 +1,35 @@
+ur_picking:
+  ros__parameters:
+    # Planning parameters
+    planning_time: 10.0
+    num_planning_attempts: 10
+    max_velocity_scaling_factor: 0.5
+    max_acceleration_scaling_factor: 0.5
+    
+    # Home position (joint values in radians)
+    home_joint_values: [0.0, -1.57, 1.57, -1.57, -1.57, 0.0]
+    
+    # Pick pose (position in meters, orientation in quaternion)
+    pick_pose:
+      position:
+        x: 0.4
+        y: 0.2
+        z: 0.3
+      orientation:
+        x: 0.0
+        y: 1.0
+        z: 0.0
+        w: 0.0
+    
+    # Place pose
+    place_pose:
+      position:
+        x: 0.4
+        y: -0.2
+        z: 0.3
+      orientation:
+        x: 0.0
+        y: 1.0
+        z: 0.0
+        w: 0.0
+

@@ -109,10 +109,40 @@ target_link_libraries(
   "${cpp_typesupport_target}"
 )
 
+add_executable(joint_state_filter_node
+  src/joint_state_filter_node.cpp
+)
+
+ament_target_dependencies(joint_state_filter_node
+  rclcpp
+  sensor_msgs
+)
+
+target_link_libraries(
+  joint_state_filter_node
+  "${cpp_typesupport_target}"
+)
+
+add_executable(robot_description_publisher_node
+  src/robot_description_publisher_node.cpp
+)
+
+ament_target_dependencies(robot_description_publisher_node
+  rclcpp
+  std_msgs
+)
+
+target_link_libraries(
+  robot_description_publisher_node
+  "${cpp_typesupport_target}"
+)
+
 install(TARGETS
   ur_picking_node
   goal_receive_node
   gripper_bridge_node
+  joint_state_filter_node
+  robot_description_publisher_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

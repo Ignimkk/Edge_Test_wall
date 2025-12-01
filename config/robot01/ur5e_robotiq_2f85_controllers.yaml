@@ -1,0 +1,123 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 500  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    io_and_status_controller:
+      type: ur_controllers/GPIOController
+
+    speed_scaling_state_broadcaster:
+      type: ur_controllers/SpeedScalingStateBroadcaster
+
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    scaled_joint_trajectory_controller:
+      type: ur_controllers/ScaledJointTrajectoryController
+
+    forward_velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    forward_position_controller:
+      type: position_controllers/JointGroupPositionController
+
+    # Robotiq gripper controllers
+    robotiq_gripper_controller:
+      type: position_controllers/GripperActionController
+    robotiq_activation_controller:
+      type: robotiq_controllers/RobotiqActivationController
+
+speed_scaling_state_broadcaster:
+  ros__parameters:
+    state_publish_rate: 100.0
+
+joint_trajectory_controller:
+  ros__parameters:
+    joints:
+      - robot01_shoulder_pan_joint
+      - robot01_shoulder_lift_joint
+      - robot01_elbow_joint
+      - robot01_wrist_1_joint
+      - robot01_wrist_2_joint
+      - robot01_wrist_3_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      stopped_velocity_tolerance: 0.2
+      goal_time: 0.0
+      robot01_shoulder_pan_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_shoulder_lift_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_elbow_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_wrist_1_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_wrist_2_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_wrist_3_joint: { trajectory: 0.2, goal: 0.1 }
+
+scaled_joint_trajectory_controller:
+  ros__parameters:
+    joints:
+      - robot01_shoulder_pan_joint
+      - robot01_shoulder_lift_joint
+      - robot01_elbow_joint
+      - robot01_wrist_1_joint
+      - robot01_wrist_2_joint
+      - robot01_wrist_3_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    speed_scaling_interface_name: ""
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      stopped_velocity_tolerance: 0.2
+      goal_time: 0.0
+      robot01_shoulder_pan_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_shoulder_lift_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_elbow_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_wrist_1_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_wrist_2_joint: { trajectory: 0.2, goal: 0.1 }
+      robot01_wrist_3_joint: { trajectory: 0.2, goal: 0.1 }
+
+forward_velocity_controller:
+  ros__parameters:
+    joints:
+      - robot01_shoulder_pan_joint
+      - robot01_shoulder_lift_joint
+      - robot01_elbow_joint
+      - robot01_wrist_1_joint
+      - robot01_wrist_2_joint
+      - robot01_wrist_3_joint
+    interface_name: velocity
+
+forward_position_controller:
+  ros__parameters:
+    joints:
+      - robot01_shoulder_pan_joint
+      - robot01_shoulder_lift_joint
+      - robot01_elbow_joint
+      - robot01_wrist_1_joint
+      - robot01_wrist_2_joint
+      - robot01_wrist_3_joint
+
+robotiq_gripper_controller:
+  ros__parameters:
+    default: true
+    joint: robot01_robotiq_85_left_knuckle_joint
+    use_effort_interface: true
+    use_speed_interface: true
+
+robotiq_activation_controller:
+  ros__parameters:
+    default: true
+
+

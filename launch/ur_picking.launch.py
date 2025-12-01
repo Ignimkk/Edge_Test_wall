@@ -10,7 +10,7 @@ def generate_launch_description():
     # Launch arguments
     robot_id_arg = DeclareLaunchArgument(
         'robot_id',
-        default_value='robot1',
+        default_value='robot01',
         description='Robot ID / namespace for external interfaces (topics)'
     )
 
@@ -49,6 +49,7 @@ def generate_launch_description():
         package='ur_picking',
         executable='ur_picking_node',
         name='ur_picking_node',
+        namespace=LaunchConfiguration('robot_id'),
         output='screen',
         remappings=[
             # /<robot_id>/stop 으로 외부 인터페이스를 분리
@@ -68,6 +69,7 @@ def generate_launch_description():
         package='ur_picking',
         executable='goal_receive_node',
         name='goal_receive_node',
+        namespace=LaunchConfiguration('robot_id'),
         output='screen',
         remappings=[
             # /<robot_id>/move_goal, /<robot_id>/current_state 로 외부 인터페이스를 분리

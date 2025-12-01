@@ -51,19 +51,23 @@ def launch_setup(context, *args, **kwargs):
     description_package = "ur_picking"
     description_file = "ur5e_robotiq_2f85.urdf.xacro"
     runtime_config_package = "ur_picking"
-    controllers_file = "ur5e_robotiq_2f85_controllers.yaml"
 
     moveit_config_package = LaunchConfiguration("moveit_config_package")
     moveit_config_file = LaunchConfiguration("moveit_config_file")
     srdf_package = LaunchConfiguration("srdf_package")
     srdf_file = LaunchConfiguration("srdf_file")
 
-    # ros2_control 컨트롤러 YAML
+    # ros2_control 컨트롤러 YAML (robot_id 별 디렉토리 사용)
     controllers_file_path = PathJoinSubstitution(
-        [FindPackageShare(runtime_config_package), "config", controllers_file]
+        [
+            FindPackageShare(runtime_config_package),
+            "config",
+            robot_id,
+            "ur5e_robotiq_2f85_controllers.yaml",
+        ]
     )
 
-    # UR 파라미터 (로컬 ur_picking/config 사용)
+    # UR 파라미터 (로컬 ur_picking/config/robotXX 사용)
     joint_limit_params = PathJoinSubstitution(
         [FindPackageShare(description_package), "config", "ur5e", "joint_limits.yaml"]
     )
@@ -77,7 +81,12 @@ def launch_setup(context, *args, **kwargs):
         [FindPackageShare(description_package), "config", "ur5e", "visual_parameters.yaml"]
     )
     initial_positions_file = PathJoinSubstitution(
-        [FindPackageShare(description_package), "config", "initial_positions.yaml"]
+        [
+            FindPackageShare(description_package),
+            "config",
+            robot_id,
+            "initial_positions.yaml",
+        ]
     )
 
     # robot_description (UR+그리퍼) 생성
@@ -298,7 +307,12 @@ def launch_setup(context, *args, **kwargs):
     }
 
     robot_description_kinematics = PathJoinSubstitution(
-        [FindPackageShare("ur_picking"), "config", "kinematics_robot01.yaml"]
+        [
+            FindPackageShare("ur_picking"),
+            "config",
+            robot_id,
+            "kinematics.yaml",
+        ]
     )
 
     robot_description_planning = {
@@ -319,8 +333,12 @@ def launch_setup(context, *args, **kwargs):
     ompl_planning_yaml = load_yaml("ur_moveit_config", "config/ompl_planning.yaml")
     ompl_planning_pipeline_config["move_group"].update(ompl_planning_yaml)
 
-    # Trajectory Execution 설정
-    controllers_yaml = load_yaml("ur_picking", "config/controllers_robot01.yaml")
+    # Trajectory Execution 설정 (MoveIt 컨트롤러 매핑, robot_id 별 디렉토리 사용)
+    robot_id_value = robot_id.perform(context)
+    controllers_yaml = load_yaml(
+        "ur_picking",
+        os.path.join("config", robot_id_value, "controllers.yaml"),
+    )
 
     moveit_controllers = {
         "moveit_simple_controller_manager": controllers_yaml,
@@ -347,7 +365,40 @@ def launch_setup(context, *args, **kwargs):
         "warehouse_host": warehouse_sqlite_path,
     }
 
+    # robot_description / robot_description_semantic String 퍼블리셔
+    # (MoveGroupInterface 호환용, /<robot_id>/robot_description[_semantic])
+    robot_description_publisher_node = Node(
+        package="ur_picking",
+        executable="robot_description_publisher_node",
+        name="robot_description_publisher_node",
+        namespace=robot_id,
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            robot_description,
+            robot_description_semantic,
+        ],
+    )
+
+    # JointState 필터 노드 (전역 /joint_states -> /<robot_id>/joint_states)
+    robot_id_value = robot_id.perform(context)
+    joint_prefix_value = prefix.perform(context)
+
+    joint_state_filter_node = Node(
+        package="ur_picking",
+        executable="joint_state_filter_node",
+        name="joint_state_filter_node",
+        namespace=robot_id,
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"joint_prefix": joint_prefix_value},
+        ],
+    )
+
     # MoveIt move_group 노드
+    joint_state_topic = f"/{robot_id_value}/joint_states"
+
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
@@ -366,6 +417,7 @@ def launch_setup(context, *args, **kwargs):
             planning_scene_monitor_parameters,
             {"use_sim_time": use_sim_time},
             warehouse_ros_config,
+            {"joint_state_topic": joint_state_topic},
         ],
     )
 
@@ -423,11 +475,13 @@ def launch_setup(context, *args, **kwargs):
         gz_launch_without_gui,
         gz_sim_bridge,
         robot_state_publisher_node,
+        robot_description_publisher_node,
         gz_spawn_entity,
         joint_state_broadcaster_spawner,
         initial_joint_controller_spawner_started,
         initial_joint_controller_spawner_stopped,
         robotiq_gripper_controller_spawner,
+        joint_state_filter_node,
         moveit_start,
     ]
 
