@@ -224,30 +224,32 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
+    # 컨트롤러 이름 (로봇별로 접두어 부여)
+    robot_id_value = robot_id.perform(context)
+    joint_state_broadcaster_name = f"{robot_id_value}_joint_state_broadcaster"
+    joint_trajectory_controller_name = f"{robot_id_value}_joint_trajectory_controller"
+    robotiq_gripper_controller_name = f"{robot_id_value}_robotiq_gripper_controller"
+
     # 컨트롤러 스포너
-    # 주의: gz_ros2_control가 현재 controller_manager 노드를 전역 네임스페이스의
-    # 'controller_manager' 이름으로 생성하므로, 여기서는 기본 서비스 이름
-    # (/controller_manager/list_controllers 등)을 그대로 사용한다.
-    # 다중 라즈베리파이 환경에서는 각 보드가 별도 프로세스/머신이므로
-    # 이 전역 이름 충돌은 문제가 되지 않는다.
+    # gz_ros2_control 플러그인은 여전히 전역 이름의 '/controller_manager' 서비스를 사용하므로
+    # 여기서는 공통 서비스 이름을 그대로 사용한다.
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "joint_state_broadcaster",
+            joint_state_broadcaster_name,
             "--controller-manager",
             "/controller_manager",
         ],
     )
 
-    initial_joint_controller = LaunchConfiguration("initial_joint_controller")
     start_joint_controller = LaunchConfiguration("start_joint_controller")
 
     initial_joint_controller_spawner_started = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
-            initial_joint_controller,
+            joint_trajectory_controller_name,
             "-c",
             "/controller_manager",
         ],
@@ -257,7 +259,7 @@ def launch_setup(context, *args, **kwargs):
         package="controller_manager",
         executable="spawner",
         arguments=[
-            initial_joint_controller,
+            joint_trajectory_controller_name,
             "-c",
             "/controller_manager",
             "--stopped",
@@ -270,7 +272,7 @@ def launch_setup(context, *args, **kwargs):
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "robotiq_gripper_controller",
+            robotiq_gripper_controller_name,
             "-c",
             "/controller_manager",
         ],
