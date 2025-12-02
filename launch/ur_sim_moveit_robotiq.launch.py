@@ -150,10 +150,10 @@ def launch_setup(context, *args, **kwargs):
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
-        # namespace를 주지 않고 전역 노드로 두어 gz_ros2_control 플러그인이
-        # robot_state_publisher의 서비스(/robot_state_publisher/*)를 찾을 수 있게 함
+        # namespace를 주지 않고 전역 노드로 두되, /clock 은 로봇별 토픽으로 remap
         output="both",
         parameters=[{"use_sim_time": True}, robot_description],
+        remappings=[("/clock", f"/{robot_id.perform(context)}/clock")],
     )
 
     # Gazebo / ros_gz_sim
@@ -214,12 +214,12 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    # /clock 브리지
+    # /<robot_id>/clock 브리지 (로봇별 시뮬레이션 시간 분리)
     gz_sim_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            "/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock",
+            f"/{robot_id.perform(context)}/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock",
         ],
         output="screen",
     )
@@ -380,10 +380,10 @@ def launch_setup(context, *args, **kwargs):
             robot_description,
             robot_description_semantic,
         ],
+        remappings=[("/clock", f"/{robot_id_value}/clock")],
     )
 
     # JointState 필터 노드 (전역 /joint_states -> /<robot_id>/joint_states)
-    robot_id_value = robot_id.perform(context)
     joint_prefix_value = prefix.perform(context)
 
     joint_state_filter_node = Node(
@@ -396,6 +396,7 @@ def launch_setup(context, *args, **kwargs):
             {"use_sim_time": True},
             {"joint_prefix": joint_prefix_value},
         ],
+        remappings=[("/clock", f"/{robot_id_value}/clock")],
     )
 
     # MoveIt move_group 노드
@@ -421,6 +422,7 @@ def launch_setup(context, *args, **kwargs):
             warehouse_ros_config,
             {"joint_state_topic": joint_state_topic},
         ],
+        remappings=[("/clock", f"/{robot_id_value}/clock")],
     )
 
     # RViz (로봇 모델만 표시)
@@ -443,6 +445,7 @@ def launch_setup(context, *args, **kwargs):
             warehouse_ros_config,
             {"use_sim_time": use_sim_time},
         ],
+        remappings=[("/clock", f"/{robot_id_value}/clock")],
     )
 
     # Servo 노드
@@ -457,6 +460,7 @@ def launch_setup(context, *args, **kwargs):
             robot_description,
             robot_description_semantic,
         ],
+        remappings=[("/clock", f"/{robot_id_value}/clock")],
         output="screen",
     )
 
