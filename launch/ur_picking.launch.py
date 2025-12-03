@@ -56,6 +56,14 @@ def generate_launch_description():
         }]
     )
 
+    # Gripper Bridge Node (토픽 -> 액션 브릿지)
+    gripper_bridge_node = Node(
+        package='ur_picking',
+        executable='gripper_bridge_node',
+        name='gripper_bridge_node',
+        output='screen',
+    )
+
     return LaunchDescription([
         use_sim_time_arg,
         use_cartesian_arg,
@@ -63,5 +71,6 @@ def generate_launch_description():
         robot_ip_arg,
         ur_picking_node,
         goal_receive_node,
+        gripper_bridge_node,
     ])
 

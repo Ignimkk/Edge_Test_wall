@@ -24,11 +24,11 @@ public:
   {
     RCLCPP_INFO(this->get_logger(), "UR Picking Node initialized");
 
-    // MoveIt2 설정
+    // MoveIt2 설정 (속도/가속도 스케일 낮춰서 더 천천히 움직이도록 설정)
     move_group_.setPlanningTime(10.0);
     move_group_.setNumPlanningAttempts(10);
-    move_group_.setMaxVelocityScalingFactor(0.5);
-    move_group_.setMaxAccelerationScalingFactor(0.5);
+    move_group_.setMaxVelocityScalingFactor(0.3);
+    move_group_.setMaxAccelerationScalingFactor(0.3);
 
     // Planning group 정보 출력
     RCLCPP_INFO(this->get_logger(), "Planning frame: %s", move_group_.getPlanningFrame().c_str());

@@ -267,7 +267,7 @@ def launch_setup(context, *args, **kwargs):
     }
 
     robot_description_kinematics = PathJoinSubstitution(
-        [FindPackageShare(moveit_config_package), "config", "kinematics.yaml"]
+        [FindPackageShare("ur_picking"), "config", "kinematics.yaml"]
     )
 
     robot_description_planning = {
@@ -342,7 +342,7 @@ def launch_setup(context, *args, **kwargs):
 
     # RViz (MoveIt 뷰)
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare(moveit_config_package), "rviz", "view_robot.rviz"]
+        [FindPackageShare("ur_picking"), "rviz", "robot_model.rviz"]
     )
     rviz_node = Node(
         package="rviz2",
