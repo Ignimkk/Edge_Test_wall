@@ -1,0 +1,189 @@
+1.
+
+표준 UR 패키지 사용 (3개 터미널 분리 실행)
+```bash
+# 터미널 1: UR Control with Fake Hardware
+ros2 launch ur_bringup ur5e.launch.py \
+    robot_ip:=xxx.yyy.zzz.www \
+    use_fake_hardware:=true \
+    fake_sensor_commands:=true
+
+# 터미널 2: MoveIt with RViz
+ros2 launch ur_moveit_config ur_moveit.launch.py \
+    ur_type:=ur5e \
+    launch_rviz:=false \
+    launch_servo:=false \
+    use_sim_time:=false
+
+# 터미널 3: Pick and Place 노드들
+ros2 launch ur_pick_and_place modular_pick_and_place.launch.py use_sim_time:=false use_cartesian_path:=true
+```
+
+----------- pick_goal -------------
+ros2 topic pub --once /pick_goal geometry_msgs/msg/PoseStamped \
+'{header: {frame_id: "base_link"}, pose: {position: {x: 0.010, y: 0.410, z: 0.264}, orientation: {w: 1.0}}}'
+
+
+ros2 topic pub --once /pick_goal geometry_msgs/msg/PoseStamped \
+'{header: {frame_id: "base_link"}, pose: {position: {x: 0.010, y: 0.410, z: 0.264}, orientation: {w: 1.0}}}'
+
+
+
+pkill -9 -f "ros2|gz|gazebo|rviz2|gzserver|gzclient"
+
+------- 일시정지/재개 -------
+# 사용
+ros2 service call /pick_place/pause std_srvs/srv/Trigger
+ros2 service call /pick_place/resume std_srvs/srv/Trigger
+
+
+ros2 topic pub /pnp_cmd std_msgs/msg/String "data: 'pause'"
+ros2 topic pub /pnp_cmd std_msgs/msg/String "data: 'resume'"
+
+--------------새로운 버전 (TEST wall)----------------------------------
+
+1. 가제보 실행
+ros2 launch ur_simulation_gz ur_sim_moveit.launch.py gazebo_gui:=false
+
+2. pnp 실행 아래 중에서 암거나 ㄱㄱ
+ros2 launch ur_picking ur_picking.launch.py use_cartesian:=false planner_type:=RRT
+ros2 launch ur_picking ur_picking.launch.py use_cartesian:=false planner_type:=RRTstar
+ros2 launch ur_picking ur_picking.launch.py use_cartesian:=true
+
+
+2-1 플래너 변경
+# RRT 사용
+ros2 param set /ur_picking_node planner_type "RRT"
+# RRT* 사용
+ros2 param set /ur_picking_node planner_type "RRTstar"
+ros2 param set /ur_picking_node planner_type "RRT*"
+
+3. move_goal 전송
+ros2 topic pub --once /move_goal geometry_msgs/msg/PoseStamped "{
+  header: {frame_id: 'base_link'},
+  pose: {
+    position: {x: 0.0, y: 0.35, z: 0.26},
+    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+  }
+}"
+
+3-1. 자세는 orientation에서
+ros2 topic pub --once /move_goal geometry_msgs/msg/PoseStamped "{
+  header: {frame_id: 'base_link'},
+  pose: {
+    position: {x: 0.0, y: 0.35, z: 0.26},
+    orientation: {x: 1.0, y: 0.0, z: 0.0, w: 0.0}
+  }
+}" 
+
+4. 정지
+ros2 topic pub /stop std_msgs/msg/Bool "data: true"
+
+5. 상태 확인
+ros2 topic echo /current_state
+
+
+------------------------------------------------------------------------------------------
+
+## 빌드
+colcon build --packages-select ur_picking --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+
+
+## 시뮬용 로보티큐
+colcon build --packages-select robotiq_description robotiq_controllers
+
+로보티큐 의존성 오류 아래 둘중 하나 하기 --> 실물 사용할 때만 필요.
+
+1. 직접
+# .repos에 적혀 있던 serial 의존성
+git clone -b ros2 https://github.com/tylerjw/serial.git
+
+
+2. repos
+vcs import . < my_moveit.repos
+
+
+---------------------------- 버전 2? ur + 그리퍼----------------------------
+
+1. 가제보 + 무브잇 + rviz2 
+ros2 launch ur_picking ur_sim_moveit_robotiq.launch.py gazebo_gui:=false
+
+2. pnp 모듈 실행
+ros2 launch ur_picking ur_picking.launch.py use_cartesian:=true
+3. move_goal
+
+ros2 topic pub --once /move_goal geometry_msgs/msg/PoseStamped "{
+  header: {frame_id: 'base_link'},
+  pose: {
+    position: {x: 0.6, y: -0.35, z: 0.16},
+    orientation: {x: 1.0, y: 0.0, z: 0.0, w: 0.0}
+  }
+}" 
+
+4. 그리퍼 동작
+ros2 action send_goal   /robotiq_gripper_controller/gripper_cmd   control_msgs/action/GripperCommand   "{command: {position: 0.6, max_effort: 40.0}}"
+# position 을 0.0 ~ 0.8 사이로 조절 (숫자가 작을 수록 열린상태)
+
+
+
+
+
+
+ros2 topic pub --once /robot01/move_goal geometry_msgs/msg/PoseStamped "{
+  header: {frame_id: 'robot01_base_link'},
+  pose: {
+    position: {x: 0.0, y: 0.45, z: 0.46},
+    orientation: {x: 1.0, y: 0.0, z: 0.0, w: 0.0}
+  }
+}"
+ros2 topic pub --once /gripper_open std_msgs/msg/Bool "data: false" 
+
+ros2 topic pub --once /stop std_msgs/msg/Bool "data: true"
+
+---------------- 최종본 ------------------------
+1. sim & moveit2
+ros2 launch ur_picking ur_sim_moveit_robotiq.launch.py   robot_id:=robot01 prefix:=robot01_ tf_prefix:=robot01_   gazebo_gui:=false launch_servo:=false
+
+2. picking 모듈
+ros2 launch ur_picking ur_picking.launch.py   robot_id:=robot01   planning_group:=robot01_ur_manipulator   use_cartesian:=true
+
+
+
+3. 제어 토픽
+ros2 topic pub --once /robot02/move_goal geometry_msgs/msg/PoseStamped "{
+  header: {frame_id: 'robot02_base_link'},
+  pose: {
+    position: {x: 0.0, y: 0.45, z: 0.46},
+    orientation: {x: 1.0, y: 0.0, z: 0.0, w: 0.0}
+  }
+}"
+
+ros2 topic pub --once /robot01/move_goal geometry_msgs/msg/PoseStamped "{
+  header: {frame_id: 'robot01_base_link'},
+  pose: {
+    position: {x: 0.0, y: 0.35, z: 0.36},
+    orientation: {x: 1.0, y: 0.0, z: 0.0, w: 0.0}
+  }
+}"
+
+4. 그리핑
+ros2 topic pub --once /robot02/gripper_open std_msgs/msg/Bool "data: false" 
+-> (false가 닫기)
+
+5. 종료
+pkill -9 -f "ros2|gz|gazebo|rviz2|gzserver|gzclient"
+colcon build --packages-select ur_picking --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+
+
+
+
+1. clock 네임스페이스 부여
+2. 페이크 하드웨어 인터페이스 사용
+
+
+
+export ROS_DOMAIN_ID=15
+echo $ROS_DOMAIN_ID
+
