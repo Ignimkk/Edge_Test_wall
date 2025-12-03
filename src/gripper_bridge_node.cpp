@@ -1,4 +1,5 @@
 #include <memory>
+#include <string>
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -25,8 +26,14 @@ public:
     close_position_ = this->get_parameter("close_position").as_double();
     max_effort_ = this->get_parameter("max_effort").as_double();
 
-    // 기본 액션 서버 이름: /robotiq_gripper_controller/gripper_cmd (절대 이름)
-    std::string action_name = "/robotiq_gripper_controller/gripper_cmd";
+    // 로봇 ID 파라미터(예: "robot01", "robot02")를 사용해
+    // 로봇별 그리퍼 컨트롤러 액션 이름을 구성한다.
+    this->declare_parameter<std::string>("robot_id", "robot01");
+    const std::string robot_id = this->get_parameter("robot_id").as_string();
+
+    const std::string controller_name = robot_id + "_robotiq_gripper_controller";
+    const std::string action_name = "/" + controller_name + "/gripper_cmd";
+
     gripper_action_client_ = rclcpp_action::create_client<GripperCommand>(this, action_name);
 
     RCLCPP_INFO(this->get_logger(), "Waiting for gripper action server: %s", action_name.c_str());

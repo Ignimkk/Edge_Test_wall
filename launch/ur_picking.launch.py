@@ -44,6 +44,16 @@ def generate_launch_description():
         description='Robot IP address'
     )
 
+    # kinematics.yaml (robot_id 별 경로) - MoveGroupInterface 가 robot_description_kinematics 를 볼 수 있게 전달
+    kinematics_yaml = PathJoinSubstitution(
+        [
+            FindPackageShare('ur_picking'),
+            'config',
+            LaunchConfiguration('robot_id'),
+            'kinematics.yaml',
+        ]
+    )
+
     # UR Picking Node (Action Server)
     ur_picking_node = Node(
         package='ur_picking',
@@ -55,13 +65,16 @@ def generate_launch_description():
             # /<robot_id>/stop 으로 외부 인터페이스를 분리
             ('stop', ['/', LaunchConfiguration('robot_id'), '/stop']),
         ],
-        parameters=[{
-            'use_sim_time': LaunchConfiguration('use_sim_time'),
-            'use_cartesian': LaunchConfiguration('use_cartesian'),
-            'planner_type': LaunchConfiguration('planner_type'),
-            'robot_id': LaunchConfiguration('robot_id'),
-            'planning_group': LaunchConfiguration('planning_group'),
-        }]
+        parameters=[
+            {
+                'use_sim_time': LaunchConfiguration('use_sim_time'),
+                'use_cartesian': LaunchConfiguration('use_cartesian'),
+                'planner_type': LaunchConfiguration('planner_type'),
+                'robot_id': LaunchConfiguration('robot_id'),
+                'planning_group': LaunchConfiguration('planning_group'),
+            },
+            kinematics_yaml,
+        ]
     )
 
     # Goal Receive Node (Action Client)
@@ -95,6 +108,7 @@ def generate_launch_description():
         ],
         parameters=[{
             'use_sim_time': LaunchConfiguration('use_sim_time'),
+            'robot_id': LaunchConfiguration('robot_id'),
         }]
     )
 

@@ -147,13 +147,18 @@ def launch_setup(context, *args, **kwargs):
     }
 
     # robot_state_publisher
+    # - 노드 이름은 전역(/robot_state_publisher)으로 두고
+    #   토픽만 /<robot_id>/joint_states, /<robot_id>/clock 을 사용
+    #   (gz_ros2_control 플러그인이 전역 robot_state_publisher 서비스를 찾을 수 있게 하기 위함)
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
-        # namespace를 주지 않고 전역 노드로 두되, /clock 은 로봇별 토픽으로 remap
         output="both",
         parameters=[{"use_sim_time": True}, robot_description],
-        remappings=[("/clock", f"/{robot_id.perform(context)}/clock")],
+        remappings=[
+            ("/clock", f"/{robot_id.perform(context)}/clock"),
+            ("joint_states", f"/{robot_id.perform(context)}/joint_states"),
+        ],
     )
 
     # Gazebo / ros_gz_sim
@@ -386,6 +391,13 @@ def launch_setup(context, *args, **kwargs):
     # JointState 필터 노드 (전역 /joint_states -> /<robot_id>/joint_states)
     joint_prefix_value = prefix.perform(context)
 
+    # robot_id 별 initial_positions.yaml 을 MoveIt 초기 PlanningScene 정렬용으로 재사용
+    # ex) config/robot01/initial_positions.yaml
+    initial_positions_yaml = load_yaml(
+        "ur_picking",
+        os.path.join("config", robot_id_value, "initial_positions.yaml"),
+    )
+
     joint_state_filter_node = Node(
         package="ur_picking",
         executable="joint_state_filter_node",
@@ -395,6 +407,7 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             {"use_sim_time": True},
             {"joint_prefix": joint_prefix_value},
+            initial_positions_yaml,
         ],
         remappings=[("/clock", f"/{robot_id_value}/clock")],
     )
@@ -405,8 +418,7 @@ def launch_setup(context, *args, **kwargs):
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
-        # 전역 네임스페이스에서 실행하여 /robot_description 및
-        # /robot_description_semantic 토픽을 전역으로 퍼블리시하게 함
+        namespace=robot_id,
         output="screen",
         parameters=[
             robot_description,
@@ -445,7 +457,13 @@ def launch_setup(context, *args, **kwargs):
             warehouse_ros_config,
             {"use_sim_time": use_sim_time},
         ],
-        remappings=[("/clock", f"/{robot_id_value}/clock")],
+        remappings=[
+            ("/clock", f"/{robot_id_value}/clock"),
+            # MoveIt PlanningSceneDisplay 가 사용하는 전역 서비스/토픽을
+            # 해당 로봇의 move_group 네임스페이스로 연결
+            ("/get_planning_scene", f"/{robot_id_value}/get_planning_scene"),
+            ("/monitored_planning_scene", f"/{robot_id_value}/monitored_planning_scene"),
+        ],
     )
 
     # Servo 노드
