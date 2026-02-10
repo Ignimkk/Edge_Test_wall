@@ -130,6 +130,59 @@
   <disable_collisions link1="$(arg prefix)ur_to_robotiq_link" link2="$(arg prefix)wrist_2_link" reason="Never" />
   <disable_collisions link1="$(arg prefix)ur_to_robotiq_link" link2="$(arg prefix)wrist_3_link" reason="Adjacent" />
 
+  <!-- ==================== 카메라 브라켓 충돌 비활성화 ==================== -->
+  
+  <!-- 카메라 브라켓과 tool0, wrist 링크들 -->
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)tool0" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)wrist_1_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)wrist_2_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)wrist_3_link" reason="Never" />
+  
+  <!-- 카메라 브라켓과 그리퍼 어댑터 (브라켓에서 그리퍼가 연결됨) -->
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)ur_to_robotiq_link" reason="Adjacent" />
+  
+  <!-- 카메라 브라켓과 그리퍼 링크들 -->
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)robotiq_85_base_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)robotiq_85_left_knuckle_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)robotiq_85_right_knuckle_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)robotiq_85_left_finger_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_bracket_link" link2="$(arg prefix)robotiq_85_right_finger_link" reason="Never" />
+
+  <!-- 그리퍼 마운팅 포인트와 어댑터 -->
+  <disable_collisions link1="$(arg prefix)gripper_mounting_point" link2="$(arg prefix)camera_bracket_link" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)gripper_mounting_point" link2="$(arg prefix)ur_to_robotiq_link" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)gripper_mounting_point" link2="$(arg prefix)tool0" reason="Never" />
+
+  <!-- ==================== RealSense D435i 카메라 충돌 비활성화 ==================== -->
+  
+  <!-- 카메라 마운팅 포인트 -->
+  <disable_collisions link1="$(arg prefix)camera_mounting_point" link2="$(arg prefix)camera_bracket_link" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_mounting_point" link2="$(arg prefix)camera_link" reason="Adjacent" />
+  
+  <!-- 카메라 링크와 주변 링크들 -->
+  <disable_collisions link1="$(arg prefix)camera_link" link2="$(arg prefix)camera_bracket_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_link" link2="$(arg prefix)camera_mounting_point" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_link" link2="$(arg prefix)tool0" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_link" link2="$(arg prefix)wrist_1_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_link" link2="$(arg prefix)wrist_2_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_link" link2="$(arg prefix)wrist_3_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_link" link2="$(arg prefix)ur_to_robotiq_link" reason="Never" />
+  <disable_collisions link1="$(arg prefix)camera_link" link2="$(arg prefix)robotiq_85_base_link" reason="Never" />
+  
+  <!-- 카메라 optical frame들은 물리적 충돌 체크 불필요 -->
+  <disable_collisions link1="$(arg prefix)camera_depth_frame" link2="$(arg prefix)camera_link" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_depth_optical_frame" link2="$(arg prefix)camera_depth_frame" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_color_frame" link2="$(arg prefix)camera_depth_frame" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_color_optical_frame" link2="$(arg prefix)camera_color_frame" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_infra1_frame" link2="$(arg prefix)camera_depth_frame" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_infra1_optical_frame" link2="$(arg prefix)camera_infra1_frame" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_infra2_frame" link2="$(arg prefix)camera_depth_frame" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_infra2_optical_frame" link2="$(arg prefix)camera_infra2_frame" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_accel_frame" link2="$(arg prefix)camera_link" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_accel_optical_frame" link2="$(arg prefix)camera_accel_frame" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_gyro_frame" link2="$(arg prefix)camera_link" reason="Adjacent" />
+  <disable_collisions link1="$(arg prefix)camera_gyro_optical_frame" link2="$(arg prefix)camera_gyro_frame" reason="Adjacent" />
+
 </robot>
 
 

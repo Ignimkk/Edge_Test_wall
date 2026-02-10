@@ -107,7 +107,7 @@ vcs import . < my_moveit.repos
 ---------------------------- 버전 2? ur + 그리퍼----------------------------
 
 1. 가제보 + 무브잇 + rviz2 
-ros2 launch ur_picking ur_sim_moveit_robotiq.launch.py gazebo_gui:=false
+ros2 launch ur_picking ur_sim_moveit_robotiq.launch.py gazebo_gui:=true launch_servo:=false
 
 2. pnp 모듈 실행
 ros2 launch ur_picking ur_picking.launch.py use_cartesian:=true
@@ -116,7 +116,7 @@ ros2 launch ur_picking ur_picking.launch.py use_cartesian:=true
 ros2 topic pub --once /move_goal geometry_msgs/msg/PoseStamped "{
   header: {frame_id: 'base_link'},
   pose: {
-    position: {x: 0.6, y: -0.35, z: 0.16},
+    position: {x: 0.6, y: 0.55, z: 0.46},
     orientation: {x: 1.0, y: 0.0, z: 0.0, w: 0.0}
   }
 }" 
@@ -130,8 +130,8 @@ ros2 action send_goal   /robotiq_gripper_controller/gripper_cmd   control_msgs/a
 
 
 
-ros2 topic pub --once /robot01/move_goal geometry_msgs/msg/PoseStamped "{
-  header: {frame_id: 'robot01_base_link'},
+ros2 topic pub --once /robot13/move_goal geometry_msgs/msg/PoseStamped "{
+  header: {frame_id: 'base_link'},
   pose: {
     position: {x: 0.0, y: 0.45, z: 0.46},
     orientation: {x: 1.0, y: 0.0, z: 0.0, w: 0.0}
@@ -159,7 +159,7 @@ ros2 topic pub --once /robot02/move_goal geometry_msgs/msg/PoseStamped "{
   }
 }"
 
-ros2 topic pub --once /robot01/move_goal geometry_msgs/msg/PoseStamped "{
+ros2 topic pub --once /move_goal geometry_msgs/msg/PoseStamped "{
   header: {frame_id: 'robot01_base_link'},
   pose: {
     position: {x: 0.0, y: 0.35, z: 0.36},
@@ -170,6 +170,7 @@ ros2 topic pub --once /robot01/move_goal geometry_msgs/msg/PoseStamped "{
 4. 그리핑
 ros2 topic pub --once /robot02/gripper_open std_msgs/msg/Bool "data: false" 
 -> (false가 닫기)
+ros2 topic pub --once /gripper_open std_msgs/msg/Bool "data: false" 
 
 5. 종료
 pkill -9 -f "ros2|gz|gazebo|rviz2|gzserver|gzclient"
@@ -187,3 +188,4 @@ colcon build --packages-select ur_picking --cmake-args -DCMAKE_BUILD_TYPE=Releas
 export ROS_DOMAIN_ID=15
 echo $ROS_DOMAIN_ID
 
+ros2 run domain_bridge domain_bridge   /home/mkketi/dev_ws/Edge/ros_domain_bridge/src/examples/Test_wall_domain_bridge_config.yaml

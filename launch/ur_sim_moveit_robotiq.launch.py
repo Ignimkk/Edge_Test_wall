@@ -144,10 +144,20 @@ def launch_setup(context, *args, **kwargs):
     robotiq_share_parent = PathJoinSubstitution(
         [FindPackageShare("robotiq_description"), ".."]
     )
+    ur_picking_share_parent = PathJoinSubstitution(
+        [FindPackageShare("ur_picking"), ".."]
+    )
+    realsense_share_parent = PathJoinSubstitution(
+        [FindPackageShare("realsense2_description"), ".."]
+    )
     set_ign_resource_path = SetEnvironmentVariable(
         name="IGN_GAZEBO_RESOURCE_PATH",
         value=[
             robotiq_share_parent,
+            ":",
+            ur_picking_share_parent,
+            ":",
+            realsense_share_parent,
             ":",
             EnvironmentVariable("IGN_GAZEBO_RESOURCE_PATH", default_value=""),
         ],
@@ -156,6 +166,10 @@ def launch_setup(context, *args, **kwargs):
         name="GZ_SIM_RESOURCE_PATH",
         value=[
             robotiq_share_parent,
+            ":",
+            ur_picking_share_parent,
+            ":",
+            realsense_share_parent,
             ":",
             EnvironmentVariable("GZ_SIM_RESOURCE_PATH", default_value=""),
         ],
